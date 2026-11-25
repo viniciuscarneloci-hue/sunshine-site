@@ -1,15 +1,17 @@
-# Sunshine Imobiliária · protótipo do site
+# Sunshine Imobiliária · novo site (protótipo)
 
-Protótipo navegável do **site do comprador** proposto para a Sunshine Imobiliária (CRECI 29988-J).
+Protótipo navegável do **site do comprador** da Sunshine Imobiliária (CRECI 29988-J).
 Só o site: os painéis (administrador, corretor, dashboard) ficam para um protótipo separado.
 
-## Telas
-- `#/` Início: busca (comprar/alugar, bairro, tipo, preço), destaques, bairros, equipe
+Identidade, logo, imóveis, fotos, telefones, endereço e texto "Sobre" vêm do site atual
+(sunshine-imob.com.br). Cores do logo: azul-marinho `#182639` e dourado `#E6BC26`.
+
+## Páginas
+- `#/` Início: foto em tela cheia, busca, destaque, imóveis, bairros, sobre, como funciona, anuncie, simulador
 - `#/comprar` e `#/alugar`: lista com filtros e ordenação
-- `#/mapa`: busca no mapa com a lista acompanhando
-- `#/imovel/1343`: página do imóvel, WhatsApp com mensagem pronta e agendar visita
-- `#/contato` e `#/privacidade` (LGPD)
-- "Ver no celular" na barra do topo abre a prévia em tamanho de celular
+- `#/mapa`: mapa real de São Paulo com a lista ao lado
+- `#/imovel/1262`: galeria, dados, localização, simulador, WhatsApp e agendar visita
+- `#/financie`, `#/anuncie`, `#/contato`, `#/privacidade`
 
 ## Como abrir
 ```
@@ -17,4 +19,5 @@ python -m http.server 5173
 ```
 e abrir http://localhost:5173
 
-Imóveis, corretores e números são de exemplo. O mapa é ilustrativo.
+Os botões de WhatsApp abrem conversa com o número real da Sunshine, (11) 99676-6021.
+Os formulários ainda não enviam nada: só mostram a confirmação.
