@@ -9,7 +9,7 @@ Identidade, logo, imóveis, fotos, telefones, endereço e texto "Sobre" vêm do 
 ## Páginas
 - `#/` Início: foto em tela cheia, busca, destaque, imóveis, bairros, sobre, como funciona, anuncie, simulador
 - `#/comprar` e `#/alugar`: lista com filtros e ordenação
-- `#/mapa`: mapa real de São Paulo com a lista ao lado
+- `#/mapa`: mapa de São Paulo com a lista ao lado (Google Maps quando houver chave em `config.js`)
 - `#/imovel/1262`: galeria, dados, localização, simulador, WhatsApp e agendar visita
 - `#/financie`, `#/anuncie`, `#/contato`, `#/privacidade`
 
@@ -21,3 +21,6 @@ e abrir http://localhost:5173
 
 Os botões de WhatsApp abrem conversa com o número real da Sunshine, (11) 99676-6021.
 Os formulários ainda não enviam nada: só mostram a confirmação.
+
+## Google Maps
+Cole a chave da Maps JavaScript API em `config.js` (`googleMapsKey`). Sem chave, o mapa de busca usa um mapa de ruas colorido e a página do imóvel usa o mapa incorporado do Google.

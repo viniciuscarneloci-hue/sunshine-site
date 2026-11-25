@@ -124,6 +124,18 @@ function specs(i) {
   return `<div class="specs">${s.join('')}</div>`;
 }
 
+// títulos que sobem palavra por palavra; *texto* vira destaque em itálico
+function sp(t) {
+  let k = 0;
+  return t.split(/(\*[^*]+\*)/).filter(Boolean).map(parte => {
+    const em = parte.startsWith('*');
+    const ws = parte.replace(/\*/g, '').trim().split(/\s+/).map(w => `<span class="w"><span style="--i:${k++}">${w}</span></span>`).join(' ');
+    return em ? `<em>${ws}</em>` : ws;
+  }).join(' ');
+}
+const palavras = t => t.split(/\s+/).map(w => `<span>${w}</span>`).join(' ');
+const SOL = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></g></svg>';
+
 // ---------------------------------------------------------------- partes comuns
 const MENU = [['#/comprar', 'Comprar', 'venda'], ['#/alugar', 'Alugar', 'aluguel'], ['#/mapa', 'Mapa', 'mapa'], ['#/financie', 'Financie', 'financie'], ['#/anuncie', 'Anuncie seu imóvel', 'anuncie'], ['#/contato', 'Contato', 'contato']];
 
@@ -149,6 +161,7 @@ function footer() {
       <div><h4>Bairros</h4>${BAIRROS.map(b => `<a href="#/comprar?bairro=${encodeURIComponent(b.nome)}">${b.nome}</a>`).join('')}</div>
       <div><h4>Fale com a gente</h4><a href="${waLink('Olá! Vim pelo site da Sunshine.')}" target="_blank" rel="noopener">${EMPRESA.tel1}</a><a href="tel:+5511972976940">${EMPRESA.tel2}</a><a href="mailto:${EMPRESA.email}">${EMPRESA.email}</a><a href="${EMPRESA.instagram}" target="_blank" rel="noopener">Instagram</a><a href="${EMPRESA.facebook}" target="_blank" rel="noopener">Facebook</a></div>
     </div>
+    <div class="giant" aria-hidden="true"><span>Sunshine</span><i class="sun-spin">${SOL}</i></div>
     <div class="legal"><span>© 2026 Sunshine Imobiliária · ${EMPRESA.endereco} · ${EMPRESA.bairroEnd}</span><span><a href="#/privacidade" style="display:inline">Privacidade</a> · Protótipo do novo site</span></div>
   </div></footer>
   <a class="fab" href="${waLink('Olá! Vim pelo site da Sunshine e gostaria de atendimento.')}" target="_blank" rel="noopener" aria-label="Falar no WhatsApp">${I.wa}</a>`;
@@ -222,87 +235,79 @@ function pgInicio() {
     </div>
   </section>
 
-  <section class="trust"><div class="wrap">
-    <div><i>${I.chat}</i><span><b>Resposta rápida</b>Direto no WhatsApp</span></div>
-    <div><i>${I.shield}</i><span><b>Assessoria jurídica</b>Negócio seguro</span></div>
-    <div><i>${I.key}</i><span><b>Imóveis selecionados</b>Venda e locação</span></div>
-    <div><i>${I.suite}</i><span><b>CRECI ${EMPRESA.creci}</b>Imobiliária registrada</span></div>
+  <div class="marq" aria-hidden="true"><div class="mq">${[0, 1].map(() => `<span>${['Compra', 'Venda', 'Locação', 'Tatuapé', 'Vila Clementino', 'Belenzinho', 'Bela Vista', 'Assessoria jurídica', 'CRECI 29988-J'].map(t => `${t}<i>${SOL}</i>`).join('')}</span>`).join('')}</div></div>
+
+  <section class="sec dark"><div class="wrap">
+    <div class="lbl rv"><span>01</span>Sobre a Sunshine</div>
+    <p class="stmt" id="stmt">${palavras('Especialistas em compra, venda e aluguel de imóveis em São Paulo. Com ética, transparência e acompanhamento jurídico do primeiro contato até a entrega das chaves.')}</p>
+    <div class="nums">
+      <div class="rv"><b><span data-count="${IMOVEIS.filter(i => i.neg === 'venda').length}">0</span></b><span>imóveis à venda agora</span></div>
+      <div class="rv"><b><span data-count="${BAIRROS.length}">0</span></b><span>bairros onde atuamos</span></div>
+      <div class="rv"><b><small>R$</small><span data-count="350">0</span><small>mil</small></b><span>imóveis a partir de</span></div>
+      <div class="rv"><b><small>CRECI</small><span data-count="29988" data-plain>0</span><small>-J</small></b><span>imobiliária registrada</span></div>
+    </div>
   </div></section>
 
   <section class="sec"><div class="wrap">
-    <div class="sh rv"><div><span class="eyebrow">Destaque da semana</span><h2>Espaço, luz e <em>piscina</em> no Belenzinho</h2></div></div>
-    <div class="feature rv">
-      <div class="ph"><img src="${img(dest.fotos[0])}" alt="${esc(dest.titulo)}" id="fimg" loading="lazy"><span class="badge gold">Ref. ${dest.id}</span>
+    <div class="lbl rv"><span>02</span>Destaque da semana</div>
+    <div class="feat">
+      <div class="feat-ph reveal" data-href="#/imovel/${dest.id}"><img src="${img(dest.fotos[0])}" alt="${esc(dest.titulo)}" id="fimg" data-par=".08" loading="lazy">
         <div class="thumbs">${dest.fotos.map((f, k) => `<button data-fimg="${f}" class="${k ? '' : 'on'}" aria-label="Foto ${k + 1}"><img src="${img(f)}" alt="" loading="lazy"></button>`).join('')}</div></div>
-      <div class="bd">
-        <span class="eyebrow">${dest.bairro} · ${dest.zona}</span>
-        <h3>${dest.titulo}</h3>
-        <p>${dest.resumo}</p>
-        <div class="grid"><div><b>${dest.m2} m²</b><span>área privativa</span></div><div><b>${dest.dorms}</b><span>dormitórios</span></div><div><b>${dest.suites}</b><span>suítes</span></div><div><b>${dest.vagas}</b><span>vagas</span></div></div>
-        <div class="foot"><span class="price tnum">${brl(dest.preco)}</span><a href="#/imovel/${dest.id}" class="btn btn-navy">Conhecer o imóvel</a></div>
+      <div class="feat-bd">
+        <span class="kick rv">${dest.bairro} · Ref. ${dest.id}</span>
+        <h2 class="split">${sp('Alto padrão com *piscina* no Belenzinho')}</h2>
+        <dl class="kv rv"><div><dt>Área</dt><dd>${dest.m2} m²</dd></div><div><dt>Dormitórios</dt><dd>${dest.dorms}</dd></div><div><dt>Suítes</dt><dd>${dest.suites}</dd></div><div><dt>Vagas</dt><dd>${dest.vagas}</dd></div></dl>
+        <div class="feat-ft rv"><span class="price tnum">${brl(dest.preco)}</span><a href="#/imovel/${dest.id}" class="btn btn-navy">Conhecer ${I.arrowR}</a></div>
       </div>
     </div>
   </div></section>
 
-  <section class="sec" style="padding-top:0"><div class="wrap">
-    <div class="sh rv"><div><span class="eyebrow">À venda</span><h2>Imóveis escolhidos a dedo</h2></div>
-      <a href="#/comprar" class="link">Ver todos os imóveis ${I.arrowR.replace('<svg', '<svg width="16" height="16"')}</a></div>
+  <section class="sec soft"><div class="wrap">
+    <div class="lbl rv"><span>03</span>À venda</div>
+    <div class="sh"><h2 class="split">${sp('Imóveis escolhidos *a dedo*')}</h2>
+      <a href="#/comprar" class="link rv">Ver todos ${I.arrowR.replace('<svg', '<svg width="16" height="16"')}</a></div>
     <div class="car" id="car" aria-roledescription="carrossel"><div class="track">${venda.map(card).join('')}</div></div>
     <div class="carnav"><button data-car="-1" aria-label="Imóvel anterior">${I.arrowL}</button><span class="cnt tnum" id="carn"></span><span class="bar"><i id="carbar"></i></span><button data-car="1" aria-label="Próximo imóvel">${I.arrowR}</button></div>
   </div></section>
 
-  <section class="sec" style="padding-top:0"><div class="wrap">
-    <div class="sh rv"><div><span class="eyebrow">Onde estamos</span><h2>Bairros que a gente conhece de perto</h2></div><p>Do Tatuapé à Vila Clementino, atendemos as regiões mais procuradas de São Paulo.</p></div>
-    <div class="hoods">${BAIRROS.map(b => { const n = IMOVEIS.filter(i => i.bairro === b.nome).length;
-      return `<a href="#/comprar?bairro=${encodeURIComponent(b.nome)}" class="hood rv"><img src="${img(b.foto)}" alt="" loading="lazy"><small>${b.zona}</small><b>${b.nome}</b><span>${plural(n, 'imóvel', 'imóveis')}</span></a>`; }).join('')}
-      <a href="#/mapa" class="hood rv"><img src="${img('1342-1')}" alt="" loading="lazy"><small>Toda a cidade</small><b>Ver no mapa</b><span>Todos os imóveis com localização</span></a></div>
-  </div></section>
-
-  <section class="sec on-dark"><div class="wrap about">
-    <div class="pics rv"><img src="${img('1343-2')}" alt="" loading="lazy"><img src="${img('1262-1')}" alt="" loading="lazy"><div class="stamp">CRECI<b>29988-J</b>São Paulo</div></div>
-    <div class="rv">
-      <span class="eyebrow">Sobre a Sunshine</span>
-      <h2>Transparência e atenção em <em>cada negócio</em></h2>
-      <p>Somos especializados na compra, venda e aluguel de imóveis. Damos toda a assessoria para uma transação segura e tranquila, com acompanhamento jurídico e operacional.</p>
-      <p>Reconhecidos pela ética e pela transparência, oferecemos atendimento personalizado para você realizar o sonho da casa própria ou investir com segurança.</p>
-      <div class="pillars">
-        <div><b>Atendimento personalizado</b><span>Um corretor acompanha você do primeiro contato à entrega das chaves.</span></div>
-        <div><b>Acompanhamento jurídico</b><span>Documentação conferida antes de qualquer assinatura.</span></div>
-        <div><b>Ética e transparência</b><span>Informação clara sobre valores, custos e prazos.</span></div>
-        <div><b>Para morar ou investir</b><span>Ajudamos a escolher o imóvel certo para o seu momento.</span></div>
-      </div>
-    </div>
-  </div></section>
-
   <section class="sec"><div class="wrap">
-    <div class="sh rv"><div><span class="eyebrow">Como funciona</span><h2>Do primeiro “oi” à chave na mão</h2></div></div>
-    <div class="steps">
-      <div class="step rv"><b>Encontre o imóvel</b><span>Busque por bairro, valor ou direto no mapa.</span></div>
-      <div class="step rv"><b>Fale no WhatsApp</b><span>A mensagem já vai com o código do imóvel. Resposta em minutos.</span></div>
-      <div class="step rv"><b>Agende a visita</b><span>Escolha o dia e o horário que ficam bons para você.</span></div>
-      <div class="step rv"><b>Feche com segurança</b><span>Cuidamos da documentação, do financiamento e do contrato.</span></div>
+    <div class="lbl rv"><span>04</span>Onde estamos</div>
+    <div class="sh"><h2 class="split">${sp('Bairros que a gente *conhece de perto*')}</h2></div>
+    <div class="hlist" id="hlist">${BAIRROS.map((b, k) => { const n = IMOVEIS.filter(i => i.bairro === b.nome).length;
+      return `<a href="#/comprar?bairro=${encodeURIComponent(b.nome)}" class="hrow" data-img="${img(b.foto)}"><span class="hn">0${k + 1}</span><img class="hth" src="${img(b.foto)}" alt="" loading="lazy"><b>${b.nome}</b><span class="hz">${b.zona}</span><span class="hc">${plural(n, 'imóvel', 'imóveis')}</span><span class="ha">${I.arrowR}</span></a>`; }).join('')}
+      <a href="#/mapa" class="hrow" data-img="${img('1342-1')}"><span class="hn">0${BAIRROS.length + 1}</span><img class="hth" src="${img('1342-1')}" alt="" loading="lazy"><b>Ver todos no mapa</b><span class="hz">São Paulo</span><span class="hc">${plural(IMOVEIS.length, 'imóvel', 'imóveis')}</span><span class="ha">${I.arrowR}</span></a>
+    </div>
+  </div><div class="hfloat" id="hfloat"><img alt=""></div></section>
+
+  <section class="sec dark tl-sec"><div class="wrap">
+    <div class="lbl rv"><span>05</span>Como funciona</div>
+    <div class="sh"><h2 class="split">${sp('Do primeiro “oi” à *chave na mão*')}</h2></div>
+    <div class="tl" id="tl"><div class="tl-line"><i id="tlfill"></i></div>
+      ${[['Encontre', 'Busque por bairro, valor ou direto no mapa.'], ['Converse', 'A mensagem já vai com o código do imóvel. Resposta em minutos.'], ['Visite', 'Escolha o dia e o horário que ficam bons para você.'], ['Feche', 'Documentação, financiamento e contrato com acompanhamento jurídico.']]
+        .map(([t, d], k) => `<div class="ts"><span class="dot">0${k + 1}</span><b>${t}</b><p>${d}</p></div>`).join('')}
     </div>
   </div></section>
 
-  <section class="sec" style="padding-top:0"><div class="wrap">
-    <div class="owner rv"><img src="${img('1262-2')}" alt="" loading="lazy">
-      <span class="eyebrow">Para proprietários</span>
-      <h2>Quer vender ou alugar? <em>A gente cuida de tudo.</em></h2>
-      <p>Avaliamos o imóvel, fazemos as fotos e o anúncio, e levamos só visitas de quem tem interesse de verdade.</p>
-      <div class="b"><a href="#/anuncie" class="btn btn-gold">Anunciar meu imóvel</a><a href="${waLink('Olá! Quero anunciar meu imóvel com a Sunshine.')}" target="_blank" rel="noopener" class="btn btn-glass">${I.wa} Falar agora</a></div>
-    </div>
-  </div></section>
+  <section class="own-sec"><div class="own" id="own"><img src="${img('1262-2')}" alt="" data-par=".12" loading="lazy">
+    <div class="own-in wrap">
+      <div class="lbl light rv"><span>06</span>Para proprietários</div>
+      <h2 class="split">${sp('Quer vender ou alugar? *A gente cuida de tudo.*')}</h2>
+      <p class="rv">Avaliação, fotos, anúncio e visitas só com quem tem interesse de verdade.</p>
+      <div class="b rv"><a href="#/anuncie" class="btn btn-gold">Anunciar meu imóvel</a><a href="${waLink('Olá! Quero anunciar meu imóvel com a Sunshine.')}" target="_blank" rel="noopener" class="btn btn-glass">${I.wa} Falar agora</a></div>
+    </div></div></section>
 
-  <section class="sec" style="padding-top:0"><div class="wrap fin">
-    <div class="rv"><span class="eyebrow">Financiamento</span><h2>Quanto fica a parcela?</h2><p>Faça uma simulação rápida. Depois, a Sunshine ajuda você a comparar os bancos e a reunir a documentação.</p>
-      <a href="#/financie" class="link" style="margin-top:22px">Saiba como funciona ${I.arrowR.replace('<svg', '<svg width="16" height="16"')}</a></div>
+  <section class="sec"><div class="wrap fin2">
+    <div><div class="lbl rv"><span>07</span>Financiamento</div>
+      <h2 class="split">${sp('Quanto fica *a parcela?*')}</h2>
+      <p class="rv muted" style="font-size:17px;max-width:420px">Simule agora. Depois, a Sunshine ajuda você a comparar os bancos e a reunir a documentação.</p>
+      <a href="#/financie" class="link rv" style="margin-top:22px">Como funciona o financiamento ${I.arrowR.replace('<svg', '<svg width="16" height="16"')}</a></div>
     ${calc(800000)}
   </div></section>
 
-  <section style="padding-bottom:96px"><div class="wrap"><div class="insta rv">
-    <h3>Siga a Sunshine no Instagram<br><a href="${EMPRESA.instagram}" target="_blank" rel="noopener">@imobiliariasunshine</a></h3>
-    <a href="${EMPRESA.instagram}" target="_blank" rel="noopener" class="btn btn-navy">${I.insta} Seguir no Instagram</a>
-  </div></div></section>
+  <section class="cta-end"><div class="wrap">
+    <h2 class="split">${sp('Vamos encontrar o seu *novo endereço?*')}</h2>
+    <div class="b rv"><a class="btn btn-gold" href="${waLink('Olá! Vim pelo site da Sunshine e gostaria de ajuda para encontrar um imóvel.')}" target="_blank" rel="noopener">${I.wa} Chamar no WhatsApp</a><a class="btn btn-line" href="${EMPRESA.instagram}" target="_blank" rel="noopener">${I.insta} @imobiliariasunshine</a></div>
+  </div></section>
   ${footer()}`;
 }
 
@@ -319,7 +324,7 @@ function atualizarCalc() {
   const c = $('#calc'); if (!c) return;
   const v = +$('[data-calc="valor"]', c).value, e = +$('[data-calc="entrada"]', c).value, p = +$('[data-calc="prazo"]', c).value;
   $('#cv').textContent = brl(v); $('#ce').textContent = `${e}% · ${brl(v * e / 100)}`; $('#cp').textContent = `${p} anos`;
-  $('#cr').textContent = brl(parcela(v, e / 100, p));
+  const cr = $('#cr'); cr.textContent = brl(parcela(v, e / 100, p)); cr.classList.remove('bump'); void cr.offsetWidth; cr.classList.add('bump');
 }
 
 // ---------------------------------------------------------------- listagem
@@ -348,7 +353,7 @@ function pgLista(neg) {
 }
 
 // ---------------------------------------------------------------- mapa
-let mapa = null, marcadores = {}, selecionado = null;
+let mapa = null, selecionado = null;
 function pgMapa() {
   header('mapa', false); ajustarBusca();
   const o = opts(busca), l = filtrar();
@@ -371,31 +376,72 @@ function pgMapa() {
   </div>`;
 }
 
-function iniciarMapa(el, lista, opts = {}) {
+// Mapa: com a chave do Google (config.js) usa o Google Maps; sem chave, usa um mapa de ruas colorido.
+const GKEY = (window.SUNSHINE_CONFIG && window.SUNSHINE_CONFIG.googleMapsKey || '').trim();
+let googleCarregando = null;
+function carregarGoogle() {
+  if (window.google && google.maps && google.maps.Map) return Promise.resolve();
+  if (!googleCarregando) googleCarregando = new Promise((ok, erro) => {
+    window._gmPronto = ok;
+    const s = document.createElement('script');
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(GKEY)}&callback=_gmPronto&loading=async&language=pt-BR&region=BR`;
+    s.async = true; s.onerror = erro; document.head.appendChild(s);
+  });
+  return googleCarregando;
+}
+const pinHtml = (i, opts) => `<span class="pin ${i.neg === 'aluguel' ? 'rent' : ''} ${i.id === opts.on ? 'on' : ''}" data-pin="${i.id}">${opts.label || curto(i.preco)}</span>`;
+
+async function iniciarMapa(el, lista, opts = {}) {
+  if (GKEY) {
+    try { await carregarGoogle(); } catch (e) { return mapaLeaflet(el, lista, opts); }
+    if (!el.isConnected) return null;
+    return mapaGoogle(el, lista, opts);
+  }
+  return mapaLeaflet(el, lista, opts);
+}
+
+function mapaGoogle(el, lista, opts) {
+  const m = new google.maps.Map(el, { center: { lat: -23.56, lng: -46.62 }, zoom: 12, disableDefaultUI: true, zoomControl: true, fullscreenControl: true, clickableIcons: false, gestureHandling: opts.wheel ? 'greedy' : 'cooperative' });
+  class Pin extends google.maps.OverlayView {
+    constructor(i) { super(); this.i = i; }
+    onAdd() {
+      const d = document.createElement('div'); d.innerHTML = pinHtml(this.i, opts); this.div = d.firstChild;
+      google.maps.OverlayView.preventMapHitsAndGesturesFrom(this.div);
+      if (opts.click) this.div.addEventListener('click', () => opts.click(this.i.id));
+      this.getPanes().overlayMouseTarget.appendChild(this.div);
+    }
+    draw() { const pt = this.getProjection().fromLatLngToDivPixel(new google.maps.LatLng(this.i.lat, this.i.lng)); this.div.style.left = pt.x + 'px'; this.div.style.top = pt.y + 'px'; }
+    onRemove() { this.div.remove(); }
+  }
+  const pins = lista.map(i => { const p = new Pin(i); p.setMap(m); return p; });
+  if (lista.length > 1) { const bb = new google.maps.LatLngBounds(); lista.forEach(i => bb.extend({ lat: i.lat, lng: i.lng })); m.fitBounds(bb, 70); }
+  else if (lista.length) { m.setCenter({ lat: lista[0].lat, lng: lista[0].lng }); m.setZoom(opts.zoom || 15); }
+  return { remove() { pins.forEach(p => p.setMap(null)); el.innerHTML = ''; }, pan(id) { const i = byId(id); m.panTo({ lat: i.lat, lng: i.lng }); } };
+}
+
+function mapaLeaflet(el, lista, opts) {
   if (!window.L) { el.innerHTML = '<div class="mapfail">Não foi possível carregar o mapa agora.</div>'; return null; }
-  const m = L.map(el, { scrollWheelZoom: !!opts.wheel, zoomControl: true, attributionControl: true });
-  const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/';
-  L.tileLayer(esri + 'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, attribution: 'Mapa &copy; Esri' }).addTo(m);
-  L.tileLayer(esri + 'World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }).addTo(m);
+  if (!el.isConnected) return null;
+  const m = L.map(el, { scrollWheelZoom: !!opts.wheel });
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Mapa &copy; Esri' }).addTo(m);
   const mk = {};
   lista.forEach(i => {
-    const icon = L.divIcon({ className: '', html: `<span class="pin ${i.neg === 'aluguel' ? 'rent' : ''} ${i.id === opts.on ? 'on' : ''}" data-pin="${i.id}">${opts.label || curto(i.preco)}</span>`, iconSize: [0, 0] });
-    mk[i.id] = L.marker([i.lat, i.lng], { icon, riseOnHover: true }).addTo(m);
+    mk[i.id] = L.marker([i.lat, i.lng], { icon: L.divIcon({ className: '', html: pinHtml(i, opts), iconSize: [0, 0] }), riseOnHover: true }).addTo(m);
     if (opts.click) mk[i.id].on('click', () => opts.click(i.id));
   });
   if (lista.length > 1) m.fitBounds(L.latLngBounds(lista.map(i => [i.lat, i.lng])), { padding: [60, 60] });
   else if (lista.length) m.setView([lista[0].lat, lista[0].lng], opts.zoom || 15);
   else m.setView([-23.56, -46.62], 12);
-  return { m, mk };
+  return { remove() { m.remove(); }, pan(id) { const i = byId(id); m.panTo([i.lat, i.lng]); }, z(id) { Object.entries(mk).forEach(([k, x]) => x.setZIndexOffset(k === id ? 1000 : 0)); } };
 }
 
 function selecionar(id, deMapa) {
   selecionado = id;
   $$('.mrow').forEach(r => r.classList.toggle('on', r.dataset.sel === id));
   $$('.pin').forEach(p => p.classList.toggle('on', p.dataset.pin === id));
-  Object.entries(marcadores).forEach(([k, mk]) => mk.setZIndexOffset(k === id ? 1000 : 0));
+  mapa?.z?.(id);
   if (deMapa) $(`.mrow[data-sel="${id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  else if (mapa) { const i = byId(id); mapa.panTo([i.lat, i.lng]); }
+  else mapa?.pan(id);
 }
 
 // ---------------------------------------------------------------- imóvel
@@ -419,7 +465,7 @@ function pgImovel(id) {
         <div class="desc">${i.desc.map(p => `<p>${p}</p>`).join('')}</div>
         <div class="tags">${i.itens.map(t => `<span>${t}</span>`).join('')}</div>
         <h2>Localização</h2>
-        <div class="minimap" id="minimap"></div>
+        <div class="minimap" id="minimap">${GKEY ? '' : `<iframe title="Mapa de ${esc(i.bairro)}" src="https://maps.google.com/maps?q=${i.lat},${i.lng}&z=15&hl=pt-BR&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style="border:0;width:100%;height:100%"></iframe>`}</div>
         <p class="note">Localização aproximada. O endereço exato é passado pelo corretor.</p>
         ${i.neg === 'venda' ? `<h2>Simule o financiamento</h2>${calc(i.preco)}` : ''}
       </div>
@@ -566,26 +612,88 @@ function rerender() {
 }
 
 function depois(parts) {
-  // animação de entrada
+  // entradas animadas: textos, títulos, rótulos, fotos e números
   revealObs?.disconnect();
-  revealObs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); revealObs.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' });
-  $$('.rv').forEach(el => revealObs.observe(el));
-  onScroll();
+  revealObs = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    e.target.classList.add('in'); revealObs.unobserve(e.target);
+    if (e.target.dataset.count) contar(e.target);
+  }), { rootMargin: '0px 0px -10% 0px' });
+  $$('.rv, .split, .lbl, .reveal, [data-count]').forEach(el => revealObs.observe(el));
+  fx = { stmtEl: $('#stmt'), stmt: $$('#stmt span'), tl: $('#tl'), tlfill: $('#tlfill'), ts: $$('.ts'), own: $('#own'), par: $$('[data-par]') };
+  efeitos();
   window._carReset = null;
   if (!parts[0]) { iniciarHero(); iniciarCarrossel(); }
-  const quando = fn => window.L ? fn() : window.addEventListener('load', fn, { once: true });
-  if (parts[0] === 'mapa' && $('#map')) quando(() => {
-    if (!$('#map')) return;
-    const r = iniciarMapa($('#map'), filtrar(), { on: selecionado, click: id => selecionar(id, true), wheel: true });
-    if (r) { mapa = r.m; marcadores = r.mk; }
+  const quando = fn => document.readyState === 'complete' ? fn() : window.addEventListener('load', fn, { once: true });
+  if (parts[0] === 'mapa' && $('#map')) quando(async () => {
+    const el = $('#map'); if (!el) return;
+    const r = await iniciarMapa(el, filtrar(), { on: selecionado, click: id => selecionar(id, true), wheel: true });
+    if (r && el.isConnected) mapa = r; else r?.remove();
   });
-  if (parts[0] === 'imovel' && $('#minimap')) quando(() => {
-    const i = byId(parts[1]); if (!i || !$('#minimap')) return;
-    const r = iniciarMapa($('#minimap'), [i], { on: i.id, label: i.bairro, zoom: 15 });
-    if (r) mapa = r.m;
+  if (parts[0] === 'imovel' && GKEY && $('#minimap')) quando(async () => {
+    const i = byId(parts[1]), el = $('#minimap'); if (!i || !el) return;
+    const r = await iniciarMapa(el, [i], { on: i.id, label: i.bairro, zoom: 15 });
+    if (r && el.isConnected) mapa = r; else r?.remove();
   });
   const g = $('#galm'); if (g) g.addEventListener('scroll', () => { $('#galn').textContent = `${Math.round(g.scrollLeft / g.clientWidth) + 1} / ${g.children.length}`; }, { passive: true });
 }
+
+const calmo = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function contar(el) {
+  const n = +el.dataset.count, simples = 'plain' in el.dataset, fmt = v => simples ? String(v) : v.toLocaleString('pt-BR');
+  if (calmo) { el.textContent = fmt(n); return; }
+  const t0 = performance.now(), dur = 1800;
+  const passo = t => { const p = Math.min(1, (t - t0) / dur); el.textContent = fmt(Math.round(n * (1 - Math.pow(1 - p, 4)))); if (p < 1) requestAnimationFrame(passo); };
+  requestAnimationFrame(passo);
+}
+
+// efeitos ligados à rolagem: barra de progresso, manifesto, linha do tempo, foto que expande e parallax
+let fx = {}, pendente = false;
+const limitar = (v, a, b) => Math.max(a, Math.min(b, v));
+function efeitos() {
+  const hd = $('#hd'); if (hd.dataset.transp) hd.classList.toggle('solid', scrollY > 40);
+  $('#hfloat')?.classList.remove('on'); // reaparece no próximo movimento do mouse
+  const max = document.documentElement.scrollHeight - innerHeight;
+  $('#prog').style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+  const vh = innerHeight;
+  if (fx.stmtEl) {
+    const r = fx.stmtEl.getBoundingClientRect();
+    const p = calmo ? 1 : limitar((vh * .85 - r.top) / (r.height + vh * .3), 0, 1), k = Math.round(p * fx.stmt.length);
+    fx.stmt.forEach((s, i) => s.classList.toggle('on', i < k));
+  }
+  if (fx.tl) {
+    const r = fx.tl.getBoundingClientRect(), p = limitar((vh * .72 - r.top) / r.height, 0, 1), vert = innerWidth <= 760;
+    fx.tlfill.style.transform = vert ? `scaleY(${p})` : `scaleX(${p})`;
+    fx.ts.forEach((s, i) => s.classList.toggle('on', p > .02 && p >= i / Math.max(1, fx.ts.length - 1) * .9));
+  }
+  if (fx.own) {
+    const r = fx.own.getBoundingClientRect(), p = calmo ? 1 : limitar((vh - r.top) / (vh * .85), 0, 1);
+    fx.own.style.setProperty('--x', (6 * (1 - p)).toFixed(2));
+  }
+  if (!calmo) (fx.par || []).forEach(el => {
+    const r = el.parentElement.getBoundingClientRect(); if (r.bottom < 0 || r.top > vh) return;
+    el.style.transform = `translate3d(0,${(-(r.top + r.height / 2 - vh / 2) * +el.dataset.par).toFixed(1)}px,0)`;
+  });
+}
+function onScroll() { if (pendente) return; pendente = true; requestAnimationFrame(() => { pendente = false; efeitos(); }); }
+
+// foto do bairro que acompanha o mouse (só no computador)
+let hx = 0, hy = 0, mx = 0, my = 0, hAnim = null;
+function seguir() {
+  const hf = $('#hfloat'); if (!hf) { hAnim = null; return; }
+  hx += (mx - hx) * .14; hy += (my - hy) * .14;
+  hf.style.transform = `translate3d(${hx - 150}px,${hy - 110}px,0) rotate(${limitar((mx - hx) * .06, -8, 8)}deg)`;
+  hAnim = Math.abs(mx - hx) + Math.abs(my - hy) > .5 ? requestAnimationFrame(seguir) : null;
+}
+if (matchMedia('(hover: hover)').matches) document.addEventListener('mousemove', e => {
+  const hf = $('#hfloat'); if (!hf) return;
+  const row = e.target.closest && e.target.closest('.hrow');
+  if (!row || innerWidth <= 760) { hf.classList.remove('on'); return; }
+  if (!hf.classList.contains('on')) { hx = e.clientX; hy = e.clientY; }
+  if (hf.dataset.src !== row.dataset.img) { hf.firstElementChild.src = row.dataset.img; hf.dataset.src = row.dataset.img; }
+  hf.classList.add('on'); mx = e.clientX; my = e.clientY;
+  if (!hAnim) hAnim = requestAnimationFrame(seguir);
+});
 
 // carrossel: setas, contador e deslize só na horizontal (a rolagem vertical continua livre)
 function iniciarCarrossel() {
@@ -628,7 +736,6 @@ function iniciarHero() {
   slideTimer = setInterval(() => go((k + 1) % imgs.length), 6000);
 }
 
-function onScroll() { const hd = $('#hd'); if (hd.dataset.transp) hd.classList.toggle('solid', scrollY > 40); }
 
 // ---------------------------------------------------------------- eventos
 document.addEventListener('click', e => {
@@ -641,6 +748,7 @@ document.addEventListener('click', e => {
   const lb = t.closest('[data-lb]'); if (lb) { const id = location.hash.split('/')[2]; lightbox(byId(id).fotos, +lb.dataset.lb); return; }
   const lm = t.closest('[data-lbm]'); if (lm) { window._lbMove(+lm.dataset.lbm); return; }
   const sl = t.closest('[data-slide]'); if (sl) { window._heroGo(+sl.dataset.slide); return; }
+  const fh = t.closest('[data-href]'); if (fh && !t.closest('[data-fimg]')) { location.hash = fh.dataset.href; return; }
   const fi = t.closest('[data-fimg]'); if (fi) { $('#fimg').src = img(fi.dataset.fimg); $$('[data-fimg]').forEach(b => b.classList.toggle('on', b === fi)); return; }
   const cr = t.closest('[data-car]'); if (cr) { window._car?.(+cr.dataset.car); return; }
   const neg = t.closest('[data-neg]');
@@ -681,6 +789,6 @@ document.addEventListener('keydown', e => {
   if ($('.lb') && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) window._lbMove(e.key === 'ArrowRight' ? 1 : -1);
 });
 window.addEventListener('scroll', onScroll, { passive: true });
-window.addEventListener('resize', () => window._carReset?.());
+window.addEventListener('resize', () => { window._carReset?.(); onScroll(); });
 window.addEventListener('hashchange', render);
 render();
