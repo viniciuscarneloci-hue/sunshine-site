@@ -180,6 +180,14 @@ function opts(b) {
   };
 }
 
+// tira filtros que não existem no tipo de negócio atual (ex.: bairro sem imóvel para alugar)
+function ajustarBusca() {
+  const l = IMOVEIS.filter(i => i.neg === busca.neg);
+  if (busca.bairro && !l.some(i => i.bairro === busca.bairro)) busca.bairro = '';
+  if (busca.tipo && !l.some(i => i.tipo === busca.tipo)) busca.tipo = '';
+  if (busca.max && !FAIXAS[busca.neg].some(([v]) => v === busca.max)) busca.max = 0;
+}
+
 function filtrar(b = busca) {
   const l = IMOVEIS.filter(i => i.neg === b.neg && (!b.bairro || i.bairro === b.bairro) && (!b.tipo || i.tipo === b.tipo) && (!b.max || i.preco <= b.max) && (!b.dorms || i.dorms >= b.dorms));
   if (b.ordem === 'menor') l.sort((a, c) => a.preco - c.preco);
@@ -238,9 +246,9 @@ function pgInicio() {
 
   <section class="sec" style="padding-top:0"><div class="wrap">
     <div class="sh rv"><div><span class="eyebrow">À venda</span><h2>Imóveis escolhidos a dedo</h2></div>
-      <div style="display:flex;gap:16px;align-items:center"><a href="#/comprar" class="link">Ver todos os imóveis ${I.arrowR.replace('<svg', '<svg width="16" height="16"')}</a>
-      <div class="railnav"><button data-rail="-1" aria-label="Anteriores">${I.arrowL}</button><button data-rail="1" aria-label="Próximos">${I.arrowR}</button></div></div></div>
-    <div class="rail" id="rail">${venda.map(card).join('')}</div>
+      <a href="#/comprar" class="link">Ver todos os imóveis ${I.arrowR.replace('<svg', '<svg width="16" height="16"')}</a></div>
+    <div class="car" id="car" aria-roledescription="carrossel"><div class="track">${venda.map(card).join('')}</div></div>
+    <div class="carnav"><button data-car="-1" aria-label="Imóvel anterior">${I.arrowL}</button><span class="cnt tnum" id="carn"></span><span class="bar"><i id="carbar"></i></span><button data-car="1" aria-label="Próximo imóvel">${I.arrowR}</button></div>
   </div></section>
 
   <section class="sec" style="padding-top:0"><div class="wrap">
@@ -316,8 +324,7 @@ function atualizarCalc() {
 
 // ---------------------------------------------------------------- listagem
 function pgLista(neg) {
-  busca.neg = neg;
-  if (busca.max && !FAIXAS[neg].some(([v]) => v === busca.max)) busca.max = 0;
+  busca.neg = neg; ajustarBusca();
   header(neg, false);
   const o = opts(busca), l = filtrar();
   return `<section class="ph-top"><div class="wrap">
@@ -328,6 +335,7 @@ function pgLista(neg) {
   <div class="fbar"><div class="wrap">
     <a href="#/comprar" class="chip ${neg === 'venda' ? 'on' : ''}">Comprar</a><a href="#/alugar" class="chip ${neg === 'aluguel' ? 'on' : ''}">Alugar</a>
     <select class="chip" data-f="bairro" aria-label="Bairro">${o.bairro}</select>
+    <select class="chip" data-f="tipo" aria-label="Tipo">${o.tipo}</select>
     <select class="chip" data-f="max" aria-label="Valor">${o.max}</select>
     <select class="chip" data-f="dorms" aria-label="Dormitórios">${o.dorms}</select>
     <select class="chip" data-f="ordem" aria-label="Ordenar">${o.ordem}</select>
@@ -342,13 +350,14 @@ function pgLista(neg) {
 // ---------------------------------------------------------------- mapa
 let mapa = null, marcadores = {}, selecionado = null;
 function pgMapa() {
-  header('mapa', false);
+  header('mapa', false); ajustarBusca();
   const o = opts(busca), l = filtrar();
   if (!l.some(i => i.id === selecionado)) selecionado = l[0]?.id || null;
   return `<div style="padding-top:var(--hh)"></div>
   <div class="fbar"><div class="wrap" style="max-width:none">
     <button class="chip ${busca.neg === 'venda' ? 'on' : ''}" data-neg="venda">Comprar</button><button class="chip ${busca.neg === 'aluguel' ? 'on' : ''}" data-neg="aluguel">Alugar</button>
     <select class="chip" data-f="bairro" aria-label="Bairro">${o.bairro}</select>
+    <select class="chip" data-f="tipo" aria-label="Tipo">${o.tipo}</select>
     <select class="chip" data-f="max" aria-label="Valor">${o.max}</select>
     <select class="chip" data-f="dorms" aria-label="Dormitórios">${o.dorms}</select>
     <span class="sp muted" style="font-weight:700;font-size:14px;white-space:nowrap">${plural(l.length, 'imóvel', 'imóveis')} no mapa</span>
@@ -562,7 +571,8 @@ function depois(parts) {
   revealObs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); revealObs.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px' });
   $$('.rv').forEach(el => revealObs.observe(el));
   onScroll();
-  if (!parts[0]) iniciarHero();
+  window._carReset = null;
+  if (!parts[0]) { iniciarHero(); iniciarCarrossel(); }
   const quando = fn => window.L ? fn() : window.addEventListener('load', fn, { once: true });
   if (parts[0] === 'mapa' && $('#map')) quando(() => {
     if (!$('#map')) return;
@@ -575,6 +585,39 @@ function depois(parts) {
     if (r) mapa = r.m;
   });
   const g = $('#galm'); if (g) g.addEventListener('scroll', () => { $('#galn').textContent = `${Math.round(g.scrollLeft / g.clientWidth) + 1} / ${g.children.length}`; }, { passive: true });
+}
+
+// carrossel: setas, contador e deslize só na horizontal (a rolagem vertical continua livre)
+function iniciarCarrossel() {
+  const car = $('#car'); if (!car) return;
+  const tr = $('.track', car), n = tr.children.length;
+  let k = 0, x0 = 0, y0 = 0, dx = 0, eixo = null, ativo = false, arrastou = false;
+  const porTela = () => innerWidth <= 640 ? 1 : innerWidth <= 1000 ? 2 : 3;
+  const passo = () => tr.children[0].getBoundingClientRect().width + parseFloat(getComputedStyle(tr).columnGap || 0);
+  const ultimo = () => Math.max(0, n - porTela());
+  const nav = () => {
+    const p = porTela();
+    $('#carn').textContent = p === 1 ? `${k + 1} / ${n}` : `${k + 1}–${Math.min(n, k + p)} de ${n}`;
+    $('#carbar').style.width = (p / n * 100) + '%'; $('#carbar').style.marginLeft = (k / n * 100) + '%';
+    $$('[data-car]').forEach(b => b.disabled = +b.dataset.car < 0 ? k === 0 : k >= ultimo());
+  };
+  const ir = (i, anima = true) => { k = Math.max(0, Math.min(ultimo(), i)); tr.style.transition = anima ? '' : 'none'; tr.style.transform = `translateX(${-k * passo()}px)`; nav(); };
+  window._car = d => ir(k + d);
+  window._carReset = () => ir(k, false);
+  car.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' && e.button) return; x0 = e.clientX; y0 = e.clientY; dx = 0; eixo = null; ativo = true; });
+  car.addEventListener('pointermove', e => {
+    if (!ativo) return;
+    const mx = e.clientX - x0, my = e.clientY - y0;
+    if (!eixo && (Math.abs(mx) > 8 || Math.abs(my) > 8)) eixo = Math.abs(mx) > Math.abs(my) ? 'x' : 'y';
+    if (eixo !== 'x') return;
+    dx = mx; if ((k === 0 && dx > 0) || (k >= ultimo() && dx < 0)) dx /= 3; // resistência nas pontas
+    tr.style.transition = 'none'; tr.style.transform = `translateX(${-k * passo() + dx}px)`;
+  });
+  const soltar = () => { if (!ativo) return; ativo = false; if (eixo === 'x') { arrastou = Math.abs(dx) > 6; ir(dx < -50 ? k + 1 : dx > 50 ? k - 1 : k); } };
+  car.addEventListener('pointerup', soltar); car.addEventListener('pointercancel', soltar); car.addEventListener('pointerleave', soltar);
+  car.addEventListener('click', e => { if (arrastou) { e.preventDefault(); e.stopPropagation(); arrastou = false; } }, true);
+  car.addEventListener('dragstart', e => e.preventDefault());
+  ir(0, false);
 }
 
 function iniciarHero() {
@@ -599,7 +642,7 @@ document.addEventListener('click', e => {
   const lm = t.closest('[data-lbm]'); if (lm) { window._lbMove(+lm.dataset.lbm); return; }
   const sl = t.closest('[data-slide]'); if (sl) { window._heroGo(+sl.dataset.slide); return; }
   const fi = t.closest('[data-fimg]'); if (fi) { $('#fimg').src = img(fi.dataset.fimg); $$('[data-fimg]').forEach(b => b.classList.toggle('on', b === fi)); return; }
-  const rl = t.closest('[data-rail]'); if (rl) { const r = $('#rail'); r.scrollBy({ left: +rl.dataset.rail * r.clientWidth * .9, behavior: 'smooth' }); return; }
+  const cr = t.closest('[data-car]'); if (cr) { window._car?.(+cr.dataset.car); return; }
   const neg = t.closest('[data-neg]');
   if (neg) {
     busca.neg = neg.dataset.neg; busca.max = 0; busca.bairro = ''; busca.tipo = '';
@@ -638,5 +681,6 @@ document.addEventListener('keydown', e => {
   if ($('.lb') && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) window._lbMove(e.key === 'ArrowRight' ? 1 : -1);
 });
 window.addEventListener('scroll', onScroll, { passive: true });
+window.addEventListener('resize', () => window._carReset?.());
 window.addEventListener('hashchange', render);
 render();
